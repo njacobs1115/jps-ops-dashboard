@@ -10,7 +10,7 @@ import requests
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 
-# ── Config ─────────────────────────────────────────────────────────────────────
+# ── Config ─────────────────────────────────────────────────────────────────────────
 ET = ZoneInfo("America/New_York")
 GH_PAT = os.environ.get("GH_PAT", "")
 GH_OWNER = "njacobs1115"
@@ -20,10 +20,10 @@ GH_HEADERS = {
     "X-GitHub-Api-Version": "2022-11-28",
 }
 
-# ── Systems definition ─────────────────────────────────────────────────────────
+# ── Systems definition ───────────────────────────────────────────────────────────
 # type: "github_actions" | "render_service" | "live_embed" | "make_scenario" | "on_demand"
 SYSTEMS = [
-    # ── Scheduled / GitHub Actions ──────────────────────────────────────────
+    # ── Scheduled / GitHub Actions ────────────────────────────────────────────
     {
         "id": "pipeline_review",
         "name": "Pipeline Review",
@@ -32,7 +32,7 @@ SYSTEMS = [
         "repo": "jps-daily-pipeline-review",
         "workflow": "nightly-review.yml",
         "schedule": "Mon–Fri ~7:30pm ET",
-        "description": "Nightly GHL pipeline brief + next-morning texts",
+        "description": "Nightly pipeline brief + next-morning texts",
         "logs_url": f"https://github.com/{GH_OWNER}/jps-daily-pipeline-review/actions",
     },
     {
@@ -62,10 +62,10 @@ SYSTEMS = [
         "name": "Ads Nightly Pruner",
         "category": "Scheduled",
         "type": "render_service",
-        "health_url": "https://jps-ads-pruner.onrender.com/",
+        "health_url": os.environ.get("ADS_PRUNER_HEALTH_URL", ""),
         "schedule": "Daily 6pm ET",
         "description": "Scans search terms, flags waste, emails approval batch",
-        "logs_url": "https://jps-ads-pruner.onrender.com/",
+        "logs_url": os.environ.get("ADS_PRUNER_HEALTH_URL", "#"),
     },
     # ── Live Services ────────────────────────────────────────────────────────
     {
@@ -73,51 +73,51 @@ SYSTEMS = [
         "name": "Route Optimizer",
         "category": "Live Services",
         "type": "render_service",
-        "health_url": "https://route-optimizer-jps.onrender.com/",
+        "health_url": os.environ.get("ROUTE_OPTIMIZER_HEALTH_URL", ""),
         "schedule": "Always on (paid Render)",
         "description": "Scheduling + booking engine — powers the funnel",
-        "logs_url": "https://route-optimizer-jps.onrender.com/",
+        "logs_url": os.environ.get("ROUTE_OPTIMIZER_HEALTH_URL", "#"),
     },
     {
         "id": "booking_funnel",
         "name": "Booking Funnel",
         "category": "Live Services",
         "type": "live_embed",
-        "health_url": "https://removemyoiltank.com/oil-tank-removal-cost",
+        "health_url": os.environ.get("BOOKING_FUNNEL_URL", ""),
         "schedule": "Always on (WordPress)",
         "description": "Customer-facing price estimator + booking flow",
-        "logs_url": "https://removemyoiltank.com/oil-tank-removal-cost",
+        "logs_url": os.environ.get("BOOKING_FUNNEL_URL", "#"),
     },
-    # ── Make.com Scenarios ───────────────────────────────────────────────────
+    # ── Make.com Scenarios ─────────────────────────────────────────────────
     {
         "id": "make_booking",
         "name": "Booking Webhook (Make)",
         "category": "Make Scenarios",
         "type": "make_scenario",
-        "scenario_id": "4603576",
+        "scenario_id": os.environ.get("MAKE_BOOKING_SCENARIO_ID", ""),
         "schedule": "On booking submission",
-        "description": "Receives booking → creates GHL contact",
-        "logs_url": "https://www.make.com/en/scenarios/4603576",
+        "description": "Receives booking → creates CRM contact",
+        "logs_url": os.environ.get("MAKE_BOOKING_LOGS_URL", "#"),
     },
     {
         "id": "make_estimate",
         "name": "Estimate Email (Make)",
         "category": "Make Scenarios",
         "type": "make_scenario",
-        "scenario_id": "4629605",
+        "scenario_id": os.environ.get("MAKE_ESTIMATE_SCENARIO_ID", ""),
         "schedule": "On estimate request",
-        "description": "Sends branded HTML estimate email via Gmail",
-        "logs_url": "https://www.make.com/en/scenarios/4629605",
+        "description": "Sends branded HTML estimate email",
+        "logs_url": os.environ.get("MAKE_ESTIMATE_LOGS_URL", "#"),
     },
     {
         "id": "make_social",
         "name": "Social Caption Generator (Make)",
         "category": "Make Scenarios",
         "type": "make_scenario",
-        "scenario_id": "4630774",
+        "scenario_id": os.environ.get("MAKE_SOCIAL_SCENARIO_ID", ""),
         "schedule": "On new image in Drive",
-        "description": "AI captions for before/after job photos (FB, IG, GBP)",
-        "logs_url": "https://www.make.com/en/scenarios/4630774",
+        "description": "AI captions for before/after job photos",
+        "logs_url": os.environ.get("MAKE_SOCIAL_LOGS_URL", "#"),
     },
     # ── On-Demand Tools ──────────────────────────────────────────────────────
     {
@@ -131,7 +131,7 @@ SYSTEMS = [
     },
 ]
 
-# ── Data fetchers ──────────────────────────────────────────────────────────────
+# ── Data fetchers ────────────────────────────────────────────────────────────────
 
 def get_workflow_run(repo, workflow):
     """Fetch the latest GitHub Actions run for a workflow."""
@@ -143,7 +143,6 @@ def get_workflow_run(repo, workflow):
         if not runs:
             return {"conclusion": "never_run", "created_at": None, "html_url": None}
         run = runs[0]
-        # conclusion is set on completion; status shows in-progress state
         conclusion = run.get("conclusion") or run.get("status") or "unknown"
         return {
             "conclusion": conclusion,
@@ -157,6 +156,8 @@ def get_workflow_run(repo, workflow):
 
 def check_http(url):
     """Ping an HTTP endpoint and return up/down."""
+    if not url:
+        return "unknown"
     try:
         r = requests.get(url, timeout=20, allow_redirects=True)
         return "up" if r.status_code < 500 else "down"
@@ -214,7 +215,7 @@ def status_badge(conclusion):
     return icon, label, color
 
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+# ── Main ─────────────────────────────────────────────────────────────────────
 
 def fetch_all_statuses():
     results = {}
@@ -250,7 +251,6 @@ def fetch_all_statuses():
             }
 
         elif stype == "make_scenario":
-            # No API key available — show as enabled/available
             results[sid] = {
                 "conclusion": "enabled",
                 "last_run_rel": "—",
@@ -315,7 +315,6 @@ def render_html(statuses):
 
         cards_html += "</div>\n"
 
-    # summary counts
     total = len(SYSTEMS)
     green = sum(1 for s in SYSTEMS if statuses.get(s["id"], {}).get("conclusion") in ("success", "up", "enabled"))
     red = sum(1 for s in SYSTEMS if statuses.get(s["id"], {}).get("conclusion") in ("failure", "down", "error", "timed_out"))
@@ -485,7 +484,7 @@ def render_html(statuses):
   <div class="header">
     <div class="header-left">
       <h1>JPS Ops Dashboard</h1>
-      <p>RemoveMyOilTank.com · All systems</p>
+      <p>All systems</p>
       <p class="updated">Updated {now_et} · Auto-refreshes every 30 min</p>
     </div>
     <div class="summary">

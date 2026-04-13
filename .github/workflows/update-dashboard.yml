@@ -27,6 +27,15 @@ jobs:
       - name: Generate dashboard
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
+          ADS_PRUNER_HEALTH_URL: ${{ secrets.ADS_PRUNER_HEALTH_URL }}
+          ROUTE_OPTIMIZER_HEALTH_URL: ${{ secrets.ROUTE_OPTIMIZER_HEALTH_URL }}
+          BOOKING_FUNNEL_URL: ${{ secrets.BOOKING_FUNNEL_URL }}
+          MAKE_BOOKING_SCENARIO_ID: ${{ secrets.MAKE_BOOKING_SCENARIO_ID }}
+          MAKE_BOOKING_LOGS_URL: ${{ secrets.MAKE_BOOKING_LOGS_URL }}
+          MAKE_ESTIMATE_SCENARIO_ID: ${{ secrets.MAKE_ESTIMATE_SCENARIO_ID }}
+          MAKE_ESTIMATE_LOGS_URL: ${{ secrets.MAKE_ESTIMATE_LOGS_URL }}
+          MAKE_SOCIAL_SCENARIO_ID: ${{ secrets.MAKE_SOCIAL_SCENARIO_ID }}
+          MAKE_SOCIAL_LOGS_URL: ${{ secrets.MAKE_SOCIAL_LOGS_URL }}
         run: python generate_dashboard.py
 
       - name: Commit and push index.html
