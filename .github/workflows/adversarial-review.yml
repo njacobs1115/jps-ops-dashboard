@@ -120,7 +120,11 @@ jobs:
           """ + diff
 
           payload = {
-              "model": "gpt-4o",`n              "messages": [{"role": "user", "content": prompt}],`n              "max_tokens": 1000,`n              "response_format": {"type": "json_object"},`n          }
+              "model": "gpt-4o",
+              "messages": [{"role": "user", "content": prompt}],
+              "max_tokens": 1000,
+              "response_format": {"type": "json_object"},
+          }
 
           req = urllib.request.Request(
               "https://api.openai.com/v1/chat/completions",
@@ -138,7 +142,7 @@ jobs:
               print("Adversarial review call failed: " + str(e), file=sys.stderr)
               sys.exit(1)
 
-          content = result["content"][0]["text"].strip()
+          content = result["choices"][0]["message"]["content"].strip()
           if "```json" in content:
               content = content.split("```json", 1)[1].split("```", 1)[0].strip()
           elif "```" in content:
