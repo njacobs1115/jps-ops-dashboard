@@ -120,18 +120,18 @@ jobs:
           """ + diff
 
           payload = {
-              "model": "claude-sonnet-4-6",
-              "max_tokens": 1200,
-              "messages": [{"role": "user", "content": prompt}]
+              "model": "gpt-4o",
+              "messages": [{"role": "user", "content": prompt}],
+              "max_tokens": 1000,
+              "response_format": {"type": "json_object"},
           }
 
           req = urllib.request.Request(
-              "https://api.anthropic.com/v1/messages",
+              "https://api.openai.com/v1/chat/completions",
               data=json.dumps(payload).encode(),
               headers={
                   "Content-Type": "application/json",
-                  "x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                  "anthropic-version": "2023-06-01",
+                  "Authorization": "Bearer " + os.environ["OPENAI_API_KEY"],
               },
           )
 
@@ -195,7 +195,7 @@ jobs:
 
       - name: Run adversarial review
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python3 adversarial_review.py
 
       - name: Post adversarial review comment
