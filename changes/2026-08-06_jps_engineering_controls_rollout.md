@@ -18,6 +18,7 @@ C:\AI Workspaces\JPS\repo-hygiene\jps-engineering-system
 - .jps-repo.yml
 - .github/pull_request_template.md
 - .github/workflows/jps-hygiene.yml
+- .github/workflows/adversarial-review.yml
 - shared agent instruction block in AGENTS.md
 
 ## Intentionally Not Changed
@@ -32,3 +33,4 @@ C:\AI Workspaces\JPS\repo-hygiene\jps-engineering-system
 - git diff --check
 - jps-preflight.ps1
 - GitHub PR checks after push
+- Existing adversarial protected-path gate updated to require exact-SHA protected-path review markers instead of blocking all protected-path changes without an approval path.

@@ -11,6 +11,7 @@ APPROVED
 - Reviewed a scoped repo-governance rollout.
 - No app code, endpoint, schema, credential, customer data, or deployment path changed.
 - The added workflow is a PR hygiene check only.
+- The existing adversarial workflow remains fail-closed for protected paths and now supports exact-SHA protected-path approval markers.
 - No production deployment is authorized by this PR.
 
 ### 3. FINDINGS
