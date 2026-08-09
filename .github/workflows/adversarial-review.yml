@@ -50,6 +50,7 @@ jobs:
           import json
           import os
           import re
+          import shlex
           import sys
           import urllib.error
           import urllib.request
@@ -79,17 +80,19 @@ jobs:
           )
           APPROVAL_AUTHOR_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
           PROTECTED_PREFIXES = (
-              ".github/workflows/",
-              ".github/actions/",
-              ".github/scripts/",
+              ".github/",
               "deploy/",
               "infra/",
               "ops/",
               "scripts/",
+              "systemd/",
+              "cron/",
               "02_GOVERNANCE/",
               "06_DECISIONS/",
           )
           PROTECTED_EXACT = {
+              ".jps-repo.yml",
+              ".jps-repo.yaml",
               ".github/dependabot.yml",
               ".github/CODEOWNERS",
               "AGENTS.md",
@@ -125,15 +128,30 @@ jobs:
                   return text.split("```", 1)[1].split("```", 1)[0].strip()
               return text
 
+          def normalize_diff_path(path):
+              if path in {"/dev/null", "dev/null"}:
+                  return ""
+              if path.startswith("a/") or path.startswith("b/"):
+                  return path[2:]
+              return path
+
           def collect_changed_lines(diff_text):
               changes = {}
               current_file = None
               for line in diff_text.splitlines():
                   if line.startswith("diff --git "):
-                      match = re.match(r"diff --git a/(.+?) b/(.+)$", line)
-                      current_file = match.group(2) if match else None
-                      if current_file and current_file not in changes:
-                          changes[current_file] = {"added": [], "removed": []}
+                      current_file = None
+                      try:
+                          parts = shlex.split(line)
+                      except ValueError:
+                          parts = line.split()
+                      if len(parts) >= 4:
+                          old_path = normalize_diff_path(parts[2])
+                          new_path = normalize_diff_path(parts[3])
+                          current_file = new_path or old_path or None
+                          for path in {old_path, new_path}:
+                              if path and path not in changes:
+                                  changes[path] = {"added": [], "removed": []}
                       continue
                   if current_file is None or line.startswith("@@"):
                       continue
@@ -185,7 +203,21 @@ jobs:
               if PROTECTED_REVIEW_LABEL not in pr_labels():
                   return False, "required label is missing"
               reviews = github_api_json(f"/repos/{required('REPO')}/pulls/{required('PR_NUMBER')}/reviews?per_page=100")
-              for review in reversed(reviews):
+              latest_by_actor = {}
+              for review in reviews:
+                  if review.get("author_association") not in APPROVAL_AUTHOR_ASSOCIATIONS:
+                      continue
+                  if (review.get("user") or {}).get("type") == "Bot":
+                      continue
+                  if (review.get("commit_id") or "").lower() != head_sha:
+                      continue
+                  actor = (review.get("user") or {}).get("login", "unknown")
+                  latest_by_actor[actor] = review
+              for actor, review in latest_by_actor.items():
+                  if review.get("state") == "CHANGES_REQUESTED":
+                      submitted = review.get("submitted_at", "unknown time")
+                      return False, f"changes requested by {actor} at {submitted} for current head SHA {head_sha}"
+              for review in reversed(list(latest_by_actor.values())):
                   if review_approves_head(review, head_sha):
                       actor = (review.get("user") or {}).get("login", "unknown")
                       submitted = review.get("submitted_at", "unknown time")
@@ -357,7 +389,7 @@ jobs:
                       "",
                       "**Reasons:**",
                       "- Protected-path changes are never allowed through the low-risk fast lane.",
-                      "- Required independent protected-path review label: `" + PROTECTED_REVIEW_LABEL + "`.",
+                      "- Required owner protected-path approval label: `" + PROTECTED_REVIEW_LABEL + "`.",
                       "- Required repository-authorized PR review marker: `/protected-path-review approve " + head_sha + "`.",
                       "- Approval verification result: " + approval_detail,
                       "",
@@ -366,9 +398,9 @@ jobs:
                       "",
                       "---",
                       (
-                          "_Independent protected-path review is recorded for the current head SHA._"
+                          "_Owner protected-path approval is recorded for the current head SHA._"
                           if approved
-                          else "_Blocking until independent protected-path review is recorded for the current head SHA._"
+                          else "_Blocking until owner protected-path approval is recorded for the current head SHA._"
                       ),
                   ]
                   post_comment("\n".join(lines))
@@ -398,7 +430,7 @@ jobs:
                       continue
                   appears_added = any(evidence in added for added in changed[file_path]["added"])
                   appears_removed = any(evidence in removed for removed in changed[file_path]["removed"])
-                  if appears_added and not appears_removed:
+                  if appears_added or appears_removed:
                       verified.append(finding)
               blocking = [
                   finding for finding in verified
