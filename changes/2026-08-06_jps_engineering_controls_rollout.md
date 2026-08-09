@@ -33,4 +33,5 @@ C:\AI Workspaces\JPS\repo-hygiene\jps-engineering-system
 - git diff --check
 - jps-preflight.ps1
 - GitHub PR checks after push
+- 2026-08-09 review fixes applied: workflow diff parsing hardened, protected-path coverage expanded, PR body evidence validation strengthened, added-line-only secret scanning added, Codex false-positive workflow normalized, and Pages/source deployment approval recorded before readying the PR.
 - Existing adversarial protected-path gate updated to require exact-SHA protected-path review markers instead of blocking all protected-path changes without an approval path.
