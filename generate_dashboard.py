@@ -47,17 +47,6 @@ SYSTEMS = [
         "logs_url": f"https://github.com/{GH_OWNER}/jps-weekly-marketing-report/actions",
     },
     {
-        "id": "marketing_intel",
-        "name": "Marketing Intelligence",
-        "category": "Scheduled",
-        "type": "github_actions",
-        "repo": "jps-marketing-intelligence",
-        "workflow": "daily-intel.yml",
-        "schedule": "Weekdays 7am ET",
-        "description": "AI-powered anomaly detection across all channels",
-        "logs_url": f"https://github.com/{GH_OWNER}/jps-marketing-intelligence/actions",
-    },
-    {
         "id": "ads_pruner",
         "name": "Ads Nightly Pruner",
         "category": "Scheduled",
