@@ -16,9 +16,9 @@ Status dashboard generator for JPS systems. It queries GitHub Actions and servic
 - Shared files should contain durable facts, not temporary analysis.
 
 ## Merge Lane
-- Fast lane repo.
-- Branch -> PR -> `codex-review` + `adversarial-review`.
-- Auto-merge is allowed only after both checks pass.
+- Production-coupled lane: every merge to `master` publishes GitHub Pages.
+- Branch -> PR -> `codex-review` + `JPS hygiene` on the exact head.
+- No auto-merge. A green PR still requires explicit owner production approval before merge.
 
 ## Hard Rules
 - This repo reports status; it should not mutate live systems.
