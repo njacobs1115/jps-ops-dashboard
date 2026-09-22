@@ -17,8 +17,8 @@ Status dashboard generator for JPS systems. It queries GitHub Actions and servic
 
 ## Merge Lane
 - Production-coupled lane: every merge to `master` publishes GitHub Pages.
-- Branch -> PR -> `codex-review` + `JPS hygiene` on the exact head.
-- No auto-merge. A green PR still requires explicit owner production approval before merge.
+- Branch -> PR -> the required checks currently enforced on the exact head.
+- No auto-merge. Stop once before merge because merge is the production-effect boundary; the bounded approval covers that merge and publication together.
 
 ## Hard Rules
 - This repo reports status; it should not mutate live systems.
@@ -31,18 +31,11 @@ Status dashboard generator for JPS systems. It queries GitHub Actions and servic
 - Safe: rendering, status labeling, stale-data handling, docs.
 - Sensitive: auth, API targets, workflow files, any new live write behavior.
 
-# JPS Engineering System Agent Instructions
+## Change Governance
 
-For JPS repository work, this protocol is mandatory.
-
-Before editing code, docs, config, automation, workflows, deployment files, or live-system behavior:
-
-1. Use `C:\AI Workspaces\JPS\repo-hygiene\jps-engineering-system\jps-change.ps1 start` to create a registered branch and dedicated worktree.
-2. Work only inside the printed worktree path.
-3. Follow SysFlow, Agent Gauntlet, GateKeeper, PR review, merge, deployment, and cleanup requirements for the selected risk lane.
-4. Stage only explicit paths. Never run `git add .` or `git add -A`.
-5. Run `jps-preflight.ps1` before PR, push, merge handoff, or deployment handoff.
-6. Production deploys require separate Norman approval and `jps-deploy-record.ps1`.
-7. Cleanup requires `jps-cleanup.ps1`; do not delete branches or worktrees manually.
-
-If any check fails, stop and fix the cause or record an approved exception. Do not route around the system.
+- Canonical `CODING.md` owns risk classification, execution mode, approval, review, and production-effect boundaries.
+- Preserve every repository-specific safety, data, scheduling, customer, and testing rule above.
+- Use a clean topic branch/worktree when isolation is needed, stage explicit paths, and never run `git add .` or `git add -A`.
+- Do not require SysFlow, Gauntlet, Gatekeeper, registered-worktree tooling, or repeated owner approval unless the validated risk/mode record contains the exact trigger.
+- Required GitHub review checks on the exact PR head satisfy independent implementation review; do not duplicate them locally.
+- Continue authorized internal stages automatically and never make Norman relay prompts between agents.
