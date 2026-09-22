@@ -33,7 +33,7 @@ Status dashboard generator for JPS systems. It queries GitHub Actions and servic
 
 ## Change Governance
 
-- Canonical `CODING.md` owns risk classification, execution mode, approval, review, and production-effect boundaries.
+- Canonical JPS Brain `CODING.md` (reached through `SYSTEM-INDEX.md`) owns risk classification, execution mode, approval, review, and production-effect boundaries.
 - Preserve every repository-specific safety, data, scheduling, customer, and testing rule above.
 - Use a clean topic branch/worktree when isolation is needed, stage explicit paths, and never run `git add .` or `git add -A`.
 - Do not require SysFlow, Gauntlet, Gatekeeper, registered-worktree tooling, or repeated owner approval unless the validated risk/mode record contains the exact trigger.
